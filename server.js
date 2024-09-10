@@ -5,14 +5,19 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const Poll = require('./models/Poll');
 
+require('dotenv').config();
+
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*', // Allow any origin or specific frontend URL
+  methods: ['GET', 'POST'],
+}));
 app.use(express.json());
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || '*',
     methods: ['GET', 'POST'],
   },
 });
@@ -175,13 +180,14 @@ app.get('/api/polls', async (req, res) => {
   }
 });
 
-server.listen(5000, () => {
-  console.log('Server running on http://localhost:5000');
-});
-
-mongoose.connect('mongodb://localhost:27017/polling-system', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+    .then(() => console.log('MongoDB connected'))
+    .catch((err) => console.error('MongoDB connection error:', err));
+  
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
