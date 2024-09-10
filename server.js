@@ -9,7 +9,7 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*', // Allow any origin or specific frontend URL
+  origin: process.env.FRONTEND_URL || '*', 
   methods: ['GET', 'POST'],
 }));
 app.use(express.json());
@@ -29,7 +29,7 @@ let pastPollsVisible = false;
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  // Poll creation by Teacher
+  
   socket.on('createPoll', async (data) => {
     const { question, duration, options, correctAnswer } = data;
 
@@ -40,10 +40,8 @@ io.on('connection', (socket) => {
       correctAnswer: correctAnswer || [],
     };
 
-    // Emit the new poll to all connected clients
     io.emit('newPoll', { ...currentPoll, duration });
 
-    // Poll timer logic
     pollTimeout = setTimeout(async () => {
       if (currentPoll) {
         const pollToSave = new Poll({
@@ -66,7 +64,6 @@ io.on('connection', (socket) => {
     }, duration * 1000);
   });
 
-  // Answer submission by Student
   socket.on('submitAnswer', (data) => {
     const { answer } = data;
     if (currentPoll) {
@@ -85,7 +82,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle poll expiration
   socket.on('pollTimeExpired', async () => {
     clearTimeout(pollTimeout);
     if (currentPoll) {
@@ -107,7 +103,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Force end poll by teacher
   socket.on('endPoll', async () => {
     clearTimeout(pollTimeout);
     if (currentPoll) {
@@ -129,7 +124,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle kicking a student
   socket.on('kickStudent', (studentId) => {
     const studentSocket = io.sockets.sockets.get(studentId);
     if (studentSocket) {
@@ -138,7 +132,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Get past polls
   socket.on('getPastPolls', async () => {
     try {
       const polls = await Poll.find();
@@ -148,28 +141,25 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Toggle past polls visibility
   socket.on('togglePastPollsVisibility', () => {
     pastPollsVisible = !pastPollsVisible;
     if (pastPollsVisible) {
-      io.emit('receivePastPolls'); // Emit past polls when visibility is enabled
+      io.emit('receivePastPolls'); 
     } else {
-      io.emit('clearPastPolls'); // Clear past polls display
+      io.emit('clearPastPolls'); 
     }
   });
 
-  // Chat functionality
   socket.on('sendMessage', (data) => {
-    io.emit('receiveMessage', data);
+    io.emit('receiveMessage', data);  
   });
+  
 
-  // Handle disconnect
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
 });
 
-// Fetch polls API
 app.get('/api/polls', async (req, res) => {
   try {
     const polls = await Poll.find();
